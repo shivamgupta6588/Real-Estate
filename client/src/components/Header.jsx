@@ -21,7 +21,7 @@ const Header = () => {
           <FaSearch className="text-gray-200 hover:text-blue-500 hover:text-xl cursor-pointer" />
         </form>
         <ul className="flex gap-4 text-gray-300">
-          <Link to="/home">
+          <Link to="/">
             <li className="hidden sm:inline hover:underline cursor-pointer">Home</li>
           </Link>
           <Link to="/sign-in">
