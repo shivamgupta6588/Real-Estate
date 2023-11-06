@@ -8,7 +8,7 @@ const SignIn = () => {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (event) => {
-    event.preventDefault();
+    // event.preventDefault();
     setFormData({
       ...formData,
       [event.target.id]: event.target.value,
@@ -20,17 +20,35 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      // Make a POST request to your sign-in API endpoint
-
-      // If successful, set the user state or token in your application
-
-      // Navigate to the user's dashboard or the desired page
-      // navigate('/dashboard');
+      const res = await fetch('/api/auth/signin', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await res.json();
+    
+      if (data.success === false) {
+        setError(data.message);
+        setLoading(false);
+        return;
+      }
+    
+      setFormData({});
+      alert("User is Logged In Successfully!");
+      setError(null);
+    
+      // Delay the navigation to the home page by 4 seconds (4000 milliseconds)
+      setTimeout(() => {
+        navigate('/');
+      }, 4000);
     } catch (error) {
       setError(error.message || 'An error occurred');
+    } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -40,7 +58,7 @@ const SignIn = () => {
           <input
             type="text"
             placeholder="Username or Email"
-            id="username"
+            id="email"
             onChange={handleChange}
             required
             className="border border-gray-300 rounded-lg p-3 focus:outline-none"
@@ -62,7 +80,7 @@ const SignIn = () => {
           </button>
         </form>
         <div className="text-center mt-4 flex flex-row gap-2">
-          <p>Don't have an account?</p>
+          <p>Don&apos;t have an account?</p>
           <Link to="/sign-up">
             <span className="text-blue-500 hover:underline">Sign Up</span>
           </Link>
