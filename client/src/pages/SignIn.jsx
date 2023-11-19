@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import {useDispatch, useSelector} from 'react-redux';
+import {signInFailure,signInStart,signInSuccess} from '../redux/user/userSlice';
 
 const SignIn = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({});
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  // const [error, setError] = useState(null);
+  // const [loading, setLoading] = useState(false);
+  const {loading,error}=useSelector((state)=>state.user);
+  const dispatch=useDispatch(); 
 
   const handleChange = (event) => {
     // event.preventDefault();
@@ -17,7 +21,7 @@ const SignIn = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    dispatch(signInStart());
 
     try {
       const res = await fetch('/api/auth/signin', {
@@ -30,24 +34,27 @@ const SignIn = () => {
       const data = await res.json();
     
       if (data.success === false) {
-        setError(data.message);
-        setLoading(false);
+        // setError(data.message);
+        // setLoading(false);
+        dispatch(signInFailure(data.message));
         return;
       }
-    
+      dispatch(signInSuccess(data));
       setFormData({});
       alert("User is Logged In Successfully!");
-      setError(null);
+      // setError(null);
     
       // Delay the navigation to the home page by 4 seconds (4000 milliseconds)
       setTimeout(() => {
         navigate('/');
       }, 4000);
     } catch (error) {
-      setError(error.message || 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
+      // setError(error.message || 'An error occurred');
+      dispatch(signInFailure(error.message|| 'An error occurred'));
+    } 
+    // finally {
+    //   setLoading(false);
+    // }
   }
 
   return (
