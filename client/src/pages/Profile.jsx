@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { app } from '../firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { updateUserStart ,updateUserFailure,updateUserSuccess,deleteUserFailure, deleteUserSuccess} from '../redux/user/userSlice';
-
+import {Link} from'react-router-dom';
 const Profile = () => {
   const { currentUser,loading, error } = useSelector((state) => state.user);
   const fileInputRef = useRef(null);
@@ -240,6 +240,9 @@ const Profile = () => {
             >
               Update Profile
             </button>
+            <Link to={"/create-list"}>
+              Create Listing
+            </Link>
           </div>
         </form>
         {fileUploadError !== null ? (
