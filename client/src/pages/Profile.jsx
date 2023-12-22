@@ -169,6 +169,23 @@ const Profile = () => {
     }, 2000);
   };
   
+  const handledeleteListing=async(listingId)=>{
+    try {
+        const res=await fetch(`/api/listing/delete/${listingId}`,{
+          method:'DELETE',
+        });
+        const data=res.json();
+        if(data.success===false)
+        {
+          console.log(data.message);
+          return;
+        }
+        setuserListings((prev)=>prev.filter((listing)=>listing._id!==listingId))
+    } catch (error) {
+      console.log(error);
+    }
+
+  }
 
   return (
     <div className="container mx-auto mt-8">
@@ -304,7 +321,7 @@ const Profile = () => {
               </Link>
               <div className='flex flex-col items-center'>
                 <button className="text-green-500 uppercase">edit</button>
-                <button className="text-red-500 uppercase">delete</button>
+                <button className="text-red-500 uppercase" onClick={()=>handledeleteListing(list._id)}>delete</button>
               </div>
             </div>
           )}
