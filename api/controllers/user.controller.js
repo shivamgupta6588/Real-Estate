@@ -3,6 +3,7 @@ import bcryptjs from 'bcryptjs';
 import errorHandler from '../utils/error.js';
 import jwt from'jsonwebtoken';
 import dotenv from 'dotenv';
+import Listing from '../models/listing.model.js';
 dotenv.config();
 
 export const test = (req, res) => {
@@ -53,3 +54,17 @@ export const updateUser = async (req, res, next) => {
     }
   };
   
+  export const getUserListing=async(req,res,next)=>{
+    
+    if(req.user.id ===req.params.id){
+      try {
+        const listings=await Listing.find({userRef:req.params.id});
+        res.status(200).json(listings);
+      }catch (error){
+      
+    }}  
+    else{
+      return next(errorHandler(401,'You can only view your listings'));      
+
+    }
+  }

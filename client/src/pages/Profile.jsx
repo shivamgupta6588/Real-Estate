@@ -14,6 +14,8 @@ const Profile = () => {
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({});
   const [message, setMessage] = useState();
+  const [showListingError, setShowListingError] = useState(false);
+  const [userListings, setuserListings] = useState([]);
 
   const dispatch=useDispatch();
 
@@ -113,7 +115,21 @@ const Profile = () => {
       console.log(formData);
   }
 
-  
+  const handleListings=async()=>{
+      try {
+        setShowListingError(false);
+        const res= await fetch(`/api/user/listings/${currentUser._id}`);
+        const data= await res.json();
+        if(data.success==false)
+        {setShowListingError(true);
+         return;}
+         setuserListings(data);
+
+      } catch (error) {
+        setShowListingError(true);
+      }    
+
+  }
 
   useEffect(() => {
     // Cleanup function when component unmounts
@@ -267,6 +283,34 @@ const Profile = () => {
         <p className='text-green-700'>
           {success?'User Updated successfully':''}
         </p>
+        <button className="text-green-500" onClick={handleListings} type="button">
+          Show listings
+        </button>
+        {showListingError && 
+          <p className="text-red-500">
+              Error Showing the Listings
+          </p>
+        }
+        { userListings && userListings.length>0 &&
+        <div className='flex flex-col gap-4'>
+          <h1 className='text-center mt-7 text-2xl  font-semibold'>Your Listings</h1>
+          {userListings.map((list)=>
+            < div key={list._id} className='border rounded-lg  gap-4 p-3 flex justify-between items-center'>
+              <Link to={`/listing/${list._id}`}>
+              <img className="h-16 w-16 object-contain" alt={list.name} src={list.imageUrls[0]}/>
+              </Link>
+              <Link className='truncate text-slate-700 font-semibold flex-1' to={`/listing/${list._id}`}>
+                <p >{list.name}</p>
+              </Link>
+              <div className='flex flex-col items-center'>
+                <button className="text-green-500 uppercase">edit</button>
+                <button className="text-red-500 uppercase">delete</button>
+              </div>
+            </div>
+          )}
+        </div>
+        }
+
       </div>
     </div>
   );
