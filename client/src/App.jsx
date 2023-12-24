@@ -21,7 +21,6 @@ const App = () => {
             <Route path='/listing/:listingid' element={<Listing/>}/>
             <Route path='/create-list' element={<CreateListing/>}/>
             <Route path='/update-listing/:id' element={<UpdateListing/>}/>
-
         </Route>
         <Route path='/about' element={<About />} />
         <Route path='/sign-in' element={<SignIn />} />
