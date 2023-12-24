@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { app } from '../firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { updateUserStart ,updateUserFailure,updateUserSuccess,deleteUserFailure, deleteUserSuccess} from '../redux/user/userSlice';
-import {Link} from'react-router-dom';
+import { updateUserStart ,updateUserFailure,updateUserSuccess,deleteUserFailure, deleteUserSuccess, signOutUserStart,signOutSuccess, signInFailure, signOutUserFailure} from '../redux/user/userSlice';
+import {Link, useNavigate} from'react-router-dom';
 const Profile = () => {
   const { currentUser,loading, error } = useSelector((state) => state.user);
   const fileInputRef = useRef(null);
@@ -16,7 +16,7 @@ const Profile = () => {
   const [message, setMessage] = useState();
   const [showListingError, setShowListingError] = useState(false);
   const [userListings, setuserListings] = useState([]);
-
+  const navigate=useNavigate();
   const dispatch=useDispatch();
 
   // const handleSignOut = () => {
@@ -42,6 +42,28 @@ const Profile = () => {
       dispatch(deleteUserFailure(error.message))
     }
   };
+
+  const handleSignOut= async()=>{
+
+    try {
+        dispatch(signOutUserStart());
+        const res=await fetch('/api/auth/signout');
+        const data=await res.json();
+        if (data.success===false) 
+        {
+          dispatch(signOutUserFailure(data.message));
+          return;
+        } 
+          console.error('Sign-out Passed:', data.message);
+          dispatch(signOutSuccess(data));    
+    } catch (error) {
+      console.error('Error during sign-out:', error.message);
+      dispatch(signOutUserFailure(error.message));
+      
+    }
+  }
+
+  
 
   const handleUpdateProfile = async () => {
     const storage = getStorage(app);
@@ -258,6 +280,9 @@ const Profile = () => {
             >
               Delete Account
             </button>
+            <span onClick={handleSignOut}>
+              Signout
+            </span>
             <button
               disabled={loading}
               type="button"
@@ -320,7 +345,9 @@ const Profile = () => {
                 <p >{list.name}</p>
               </Link>
               <div className='flex flex-col items-center'>
-                <button className="text-green-500 uppercase">edit</button>
+                <Link to={`/update-listing/${list._id}`}>
+                  <button className="text-green-500 uppercase">edit</button>
+                </Link>
                 <button className="text-red-500 uppercase" onClick={()=>handledeleteListing(list._id)}>delete</button>
               </div>
             </div>

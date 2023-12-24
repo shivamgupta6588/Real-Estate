@@ -1,11 +1,13 @@
 import express from 'express';
 import{verifyToken} from '../utils/verifyUser.js';
-import {deleteListing, listing}  from '../controllers/listing.controller.js';
+import {deleteListing, listing,updateListing,getListing}  from '../controllers/listing.controller.js';
 
 const router=express.Router();
 
 router.post('/create',verifyToken,listing);
-router.delete('/:id',verifyToken,deleteListing);
+router.delete('/delete/:id',verifyToken,deleteListing);
+router.post('/update/:id',verifyToken,updateListing);
+router.get('/get/:id',getListing);
 
 
 export default router;
