@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import {useSelector} from 'react-redux';
 import { Navigation, Pagination, Scrollbar, A11y } from 'swiper/modules';
 import { FaBath, FaBed, FaChair, FaMapMarkedAlt, FaMapMarkerAlt, FaParking, FaShare } from "react-icons/fa";
 import { toast, ToastContainer } from 'react-toastify';
@@ -12,14 +13,17 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
+import Contact from './Contact';
 
 const Listing = () => {
   const [listing, setListing] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [clicked, setClicked] = useState(false);
   const params = useParams();
   const listingId = params.listingid;
 
+  const {currentUser}=useSelector((state)=>state.user);
   useEffect(() => {
     const fetchListing = async () => {
       try {
@@ -83,7 +87,7 @@ const Listing = () => {
           </div>
           <div className='flex flex-col max-w-4xl mx-auto p-3 my-7 gap-4'>
             <p className='text-2xl font-semibold'>
-              {listing.name} -₹ {" "}{listing.offer?listing.discountedPrice.toLocaleString('en-IN'):listing.regularPrice.toLocaleString('en-IN')}{listing.type==='rent'&&" / month"}
+              {/* {listing.name} -₹ {" "}{listing.offer?listing.discountedPrice?.toLocaleString('en-IN'):listing.regularPrice.toLocaleString('en-IN')}{listing.type==='rent'&&" / month"} */}
             </p>
             <p className='flex items-center mt-6  gap-2 text-slate-600 my-2 text-sm'>
               <FaMapMarkerAlt className='text-green-700' />
@@ -119,6 +123,10 @@ const Listing = () => {
                 {listing.furnished ? 'Furnished' : 'Non Furnished'}
               </li>
             </ul>
+            {currentUser && listing.userRef!==currentUser._id && !clicked &&(
+            <button className='bg-slate-900 hover:opacity-90 text-white rounded-lg uppercase p-3' onClick={setClicked(true)}>Contact Landlord</button>
+            )}
+            {clicked &&<Contact listing={listing}/>}
           </div>
           <ToastContainer />
         </div>
