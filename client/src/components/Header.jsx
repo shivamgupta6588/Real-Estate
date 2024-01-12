@@ -51,6 +51,9 @@ import {useNavigate} from 'react-router-dom';
           <Link to="/">
             <li className="hidden sm:inline hover:underline cursor-pointer">Home</li>
           </Link>
+          <Link to="/about">
+            <li className="hidden sm:inline hover:underline cursor-pointer">About</li>
+          </Link>
           <Link to="/profile">
             {currentUser ? (
               <img className='rounded-full h-7 w-7 object-cover'src={currentUser.avatar} alt="profile" />

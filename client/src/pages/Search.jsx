@@ -7,6 +7,7 @@ const Search = () => {
     const navigate=useNavigate();
     const [loading, setLoading] = useState(false);
     const [listings, setListings] = useState([]);
+    const [showmore, setShowmore] = useState(false);
     console.log(listings);
     const [sidebarData, setsidebarData] = useState({
         searchTerm:'',
@@ -42,6 +43,7 @@ const Search = () => {
     useEffect(() => {
         const urlParams = new URLSearchParams(location.search);
         const searchTermFromUrl = urlParams.get('searchTerm');
+        setShowmore(false);
         // Initial values for sidebarData
         const initialSidebarData = {
           searchTerm: searchTermFromUrl || '',
@@ -62,12 +64,18 @@ const Search = () => {
 
             const data= await res.json();
             console.log(data);
+            if(data.length>8)
+            setShowmore(true);
+            else
+            setShowmore(false);
 
             if(data.success===false)
             {
               setLoading(false);
               return;
             }
+
+
             setListings(data);
             setLoading(false);
       
@@ -92,6 +100,21 @@ const Search = () => {
         urlParams.set('order',sidebarData.order);
         const searchQuery=urlParams.toString();
         navigate(`/search?${searchQuery}`);
+    }
+
+
+    const onShowMoreclick=async()=>{
+        const numberofListings=listings.length;
+        const startIndex=numberofListings;
+        const urlParams= new  URLSearchParams(location.search);
+        urlParams.set('startIndex',startIndex);
+        const searchQuery=urlParams.toString();
+        const res= await fetch(`/api/listing/get?${searchQuery}`);
+        const data=await res.json();
+        if(data.length<9)
+        setShowmore(false);
+      
+        setListings([...listings,...data]);
     }
     // console.log(sidebarData);
   return (
@@ -190,19 +213,25 @@ const Search = () => {
                 <button className='bg-slate-700 rounded-lg p-3 text-white uppercase hover:opacity-90'>Search</button>
             </form>
         </div>
-        <div>
-            <h1 className='text-3xl font-semibold border-b p-3 n'>Listing Results:</h1>
-            <div className='p-7 flex flex-col'>
+        <div className='flex-1'>
+            <h1 className='text-3xl font-semibold border-b p-3 text-slate-700 mt-5'>Listing Results:</h1>
+            <div className='p-7 flex flex-wrap gap-4'>
                 {
-                    loading&& <p className='text-semibold text-xl'>Loading........</p>
+                    loading&& <p className='text-semibold text-xl w-full text-slate-700'>Loading........</p>
                 }
                 {
-                    !loading && listings.length===0&&<p className='text-semibold text-xl'>No lisitngs Found!</p>
+                    !loading && listings.length===0 && <p className='text-semibold text-slate-700 text-xl'>No lisitngs Found!</p>
                 }
                 {
-                    !loading && listings.length>0&&listings&& listings.map((list)=>(
+                    !loading && listings.length>0 && listings && listings.map((list)=>(
                                         <ListingItems list={list} key={list._id}/>
                     ))
+                }
+                {showmore &&(
+                    <button  className='text-green-700 hover:underline text-lg w-full' onClick={onShowMoreclick}>
+                        Show more
+                    </button>
+                )
                 }
             </div>
         </div>
