@@ -1,6 +1,8 @@
-  import { useState } from 'react';
+  import { useEffect, useState } from 'react';
   import { Link, useNavigate } from 'react-router-dom';
-import Oauth from '../components/Oauth';
+  import { ToastContainer, toast } from 'react-toastify';
+  import 'react-toastify/dist/ReactToastify.css';1
+    import Oauth from '../components/Oauth';
 
   const SignUp = () => {
     const navigate=useNavigate();
@@ -11,17 +13,73 @@ import Oauth from '../components/Oauth';
 
   const handleChange=(event)=>{
     event.preventDefault();
+    const { id, value } = event.target;
+    let transformedValue = value;
+
+
     setformData({
       ...formData,
-      [event.target.id]:event.target.value,
+      [id]:transformedValue,
     })
   };
+
+
+  useEffect(() => {
+    
+    setTimeout(() => {
+      setError(null);
+    }, 5000);
+
+  }, [error]);
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); // Set loading state
 
     try {
+            // Check if the email already exists
+      const emailExists = await checkExistingEmail(formData.email.toLowerCase());
+            // Check if the Username already exists
+      const usernameExists=await checkExistingUsername(formData.username);
+
+      if (formData.username.includes(' ')) {
+        setError('Username should not contain spaces. Please use a single word for your username.');
+        setLoading(false);
+        return ;
+      }
+
+          // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+          setError('Invalid email format');
+          setLoading(false);
+          return;
+        }
+
+  
+
+        if(formData.email!==formData.email.toLowerCase())
+        {
+          setError('Email should have only lower case');
+          setLoading(false);
+          return;
+
+        }
+
+      if (emailExists) {
+        setError('Email is already registered. Please choose a different email.');
+        setLoading(false);
+        return;
+      }
+
+      if(usernameExists)
+      {
+        setError('Username is already registered. Please choose a different Username.');
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         body: JSON.stringify(formData),
@@ -39,7 +97,8 @@ import Oauth from '../components/Oauth';
         
       }
       setformData({}); 
-      alert("User is Created!");
+      // Display success toast
+      toast.success('User has been created!', { position: toast.POSITION.TOP_RIGHT, autoClose:2000 });
       setError(null);
       // Delay the navigation to the "/sign-in" page by 4 seconds (4000 milliseconds)
       setTimeout(() => {
@@ -52,6 +111,41 @@ import Oauth from '../components/Oauth';
     }
 
   };
+
+
+const checkExistingEmail = async (email) => {
+  try {
+    const res = await fetch(`/api/auth/check-email/${email}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await res.json();
+    return data.exists; 
+  } catch (error) {
+    console.error('Error checking email:', error);
+    return false;
+  }
+};
+
+const checkExistingUsername=async(username)=>{
+  try {
+    const res = await fetch(`/api/auth//check-username/${username}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await res.json();
+    return data.exists; 
+  } catch (error) {
+    console.error('Error checking Username:', error);
+    return false;
+  }
+}
 
 
 
@@ -106,8 +200,9 @@ import Oauth from '../components/Oauth';
               <span className="text-blue-500 hover:underline">Sign-In</span>
             </Link>
           </div>
-          {error && <p className="text-red-500 text-center mt-2">{error}</p>  } 
+          {error && <p className="text-red-500 text-center mt-2">{error}</p>} 
         </div>
+        <ToastContainer/>
       </div>
     );
   };

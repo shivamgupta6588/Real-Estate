@@ -1,24 +1,25 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {useDispatch, useSelector} from 'react-redux';
-import {signInFailure,signInStart,signInSuccess} from '../redux/user/userSlice';
+import {signInFailure,signInStart,signInSuccess, clearError} from '../redux/user/userSlice';
 import Oauth from '../components/Oauth';
+import { ToastContainer, toast,Slide } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';1
 
 const SignIn = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({});
-  // const [error, setError] = useState(null);
-  // const [loading, setLoading] = useState(false);
   const {loading,error}=useSelector((state)=>state.user);
   const dispatch=useDispatch(); 
 
   const handleChange = (event) => {
-    // event.preventDefault();
+    event.preventDefault();
     setFormData({
       ...formData,
       [event.target.id]: event.target.value,
     });
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,28 +36,36 @@ const SignIn = () => {
       const data = await res.json();
     
       if (data.success === false) {
-        // setError(data.message);
-        // setLoading(false);
         dispatch(signInFailure(data.message));
         return;
       }
       dispatch(signInSuccess(data));
       setFormData({});
-      alert("User is Logged In Successfully!");
-      // setError(null);
-    
-      // Delay the navigation to the home page by 4 seconds (4000 milliseconds)
+      toast.success('User has been Logged In !', { position: toast.POSITION.TOP_RIGHT, autoClose:1000 });
+  
+      // Delay the navigation to the home page by 2 seconds (2000 milliseconds)
       setTimeout(() => {
         navigate('/');
-      }, 4000);
+      }, 2000);
     } catch (error) {
-      // setError(error.message || 'An error occurred');
       dispatch(signInFailure(error.message|| 'An error occurred'));
     } 
-    // finally {
-    //   setLoading(false);
-    // }
   }
+
+  useEffect(() => {
+    if (error) {
+      // Display toast for error message
+      toast.error(error, {
+        position: "top-right",
+        autoClose: 3000,
+        theme: "light",
+        transition: Slide,
+      });
+    }
+    setTimeout(() => {
+      dispatch(clearError());
+    }, 6000);
+  }, [error]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -65,7 +74,7 @@ const SignIn = () => {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
             type="text"
-            placeholder="Username or Email"
+            placeholder="Email"
             id="email"
             onChange={handleChange}
             required
@@ -96,6 +105,7 @@ const SignIn = () => {
         </div>
         {error && <p className="text-red-500 text-center mt-2">{error}</p>}
       </div>
+      <ToastContainer/>
     </div>
   );
 };

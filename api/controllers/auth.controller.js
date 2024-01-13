@@ -9,8 +9,10 @@ export const signup= async(req,res,next)=>{
 
    const {username,email,password}=req.body;
    const hasshedpassword=bcryptjs.hashSync(password,10);
+ 
    const newUser= new User({username,email,password:hasshedpassword});
-    try{await newUser.save();
+    try{
+      await newUser.save();
 
     res.status(201).json({ message: "User has been created!" })
     }catch(error)
@@ -18,6 +20,28 @@ export const signup= async(req,res,next)=>{
       next(error);
     }
 };
+
+export const checkUseremail=async(req,res,next)=>{
+  try {
+    const { email } = req.params;
+    const existingUser = await User.findOne({ email });
+
+    res.json({ exists: !!existingUser });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export const checkUserName= async(req,res,next)=>{
+  try {
+    const { username } = req.params;
+    const existingUser = await User.findOne({ username });
+
+    res.json({ exists: !!existingUser });
+  } catch (error) {
+    next(error);
+  }
+}
 
 export const signin = async (req, res, next) => {
   const { email, password } = req.body;
