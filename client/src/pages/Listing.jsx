@@ -107,7 +107,7 @@ const Listing = () => {
             <p className='text-slate-500'>
               <span className='fon-semibold text-black'>Description - </span>{listing.description}
             </p>
-            <ul className=' text-green-900 text-sm fon-semibold flex items-center sm:gap-6 flex-wrap'>
+            <ul className=' text-green-900 text-sm font-semibold flex items-center sm:gap-6 flex-wrap'>
               <li className='flex items-center gap-1 whitespace-nowrap '>
                 <FaBed className='text-lg' />
                 {listing.bedrooms > 1 ? `${listing.bedrooms} beds` : `${listing.bedrooms} bed`}
