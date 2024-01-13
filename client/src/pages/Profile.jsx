@@ -190,6 +190,11 @@ const Profile = () => {
       setSuccess(false);
     }, 2000);
   };
+
+  useEffect(() => {
+    handleUpdateProfile();
+  }, [selectedFile])
+  
   
   const handledeleteListing=async(listingId)=>{
     try {
@@ -211,17 +216,14 @@ const Profile = () => {
 
   return (
     <div className="container mx-auto mt-8">
-      <div className="max-w-md mx-auto bg-white rounded-md overflow-hidden shadow-md p-6 flex flex-col items-center">
-        <h2 className="text-2xl font-semibold mb-4">Profile Information</h2>
-        <form onSubmit={handleSubmit} className="flex flex-col items-start mb-6">
-          <div className="mb-6 w-full">
-            <label htmlFor="avatar" className="block text-sm font-medium text-gray-600">
-              Avatar
-            </label>
+      <div className="max-w-md mx-auto bg-white rounded-md overflow-hidden shadow-md p-6 flex flex-col gap-3 items-center">
+        <h2 className="text-3xl font-bold ">Profile </h2>
+        <form onSubmit={handleSubmit} className="flex flex-col items-start gap-4 ">
+          <div className="self-center">
             <img
               src={formData.avatar || currentUser.avatar}
               alt="Profile Avatar"
-              className="w-12 h-12 rounded-full mt-2 cursor-pointer"
+              className="h-[150px] rounded-full cursor-pointer"
               onClick={handleImageClick}
             />
             <input
@@ -234,7 +236,7 @@ const Profile = () => {
               onChange={handleFileChange}
             />
           </div>
-          <div className="mb-4 w-full">
+          <div className="w-full">
             <label htmlFor="username" className="block text-sm font-medium text-gray-600">
               Username
             </label>
@@ -247,7 +249,7 @@ const Profile = () => {
               className="w-full border border-gray-300 rounded-md p-2"
             />
           </div>
-          <div className="mb-4 w-full">
+          <div className="w-full">
             <label htmlFor="email" className="block text-sm font-medium text-gray-600">
               Email
             </label>
@@ -260,10 +262,10 @@ const Profile = () => {
               className="w-full border border-gray-300 rounded-md p-2"
             />
             </div>
-            <div className="mb-4 w-full">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-600">
+            <div className="w-full">
+            {/* <label htmlFor="password" className="block text-sm font-medium text-gray-600">
               Password
-            </label>
+            </label> */}
             <input
               type="password"
               id="password"
@@ -272,34 +274,36 @@ const Profile = () => {
               className="w-full border border-gray-300 rounded-md p-2"
             />
             </div>
-          <div className="flex items-center mb-4">
+          <div className="flex items-center flex-wrap gap-4">
             <button
               type="button"
               onClick={handleDeleteAccount}
-              className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:shadow-outline-blue mr-4"
+              className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 focus:outline-none focus:shadow-outline-blue"
             >
               Delete Account
             </button>
-            <span onClick={handleSignOut}>
+            <button type='button' onClick={handleSignOut}>
               Signout
-            </span>
+            </button>
             <button
               disabled={loading}
               type="button"
               onClick={handleSubmit}
-              className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 focus:outline-none focus:shadow-outline-red mr-4"
+              className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600 focus:outline-none focus:shadow-outline-red"
             >
               {loading? 'Loading....':'Update'}
             </button>
-            <button
+            {/* <button
               type="button"
               onClick={handleUpdateProfile}  
               className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 focus:outline-none focus:shadow-outline-green"
             >
               Update Profile
-            </button>
+            </button> */}
             <Link to={"/create-list"}>
+              <button type='button'>
               Create Listing
+              </button>
             </Link>
           </div>
         </form>
