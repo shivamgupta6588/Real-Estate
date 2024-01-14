@@ -12,7 +12,9 @@ export const listing = async (req, res, next) => {
 
 export const deleteListing = async (req, res, next) => {
   const { id } = req.params;
-  if (req.user.id !== id)
+  const foundListing = await Listing.findById(id);
+  const userRef = foundListing.userRef;
+  if (req.user.id !== userRef)
     return next(errorHandler(401, 'You can delete only your listing'));
 
   try {

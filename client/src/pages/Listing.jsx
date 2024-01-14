@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {useSelector} from 'react-redux';
 import { Navigation, Pagination, Scrollbar, A11y } from 'swiper/modules';
-import { FaBath, FaBed, FaChair, FaMapMarkedAlt, FaMapMarkerAlt, FaParking, FaShare } from "react-icons/fa";
+import { FaBath, FaBed, FaChair,FaMapMarkerAlt, FaParking, FaShare } from "react-icons/fa";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -28,7 +28,6 @@ const Listing = () => {
     const fetchListing = async () => {
       try {
         setError(false);
-
         const response = await fetch(`/api/listing/get/${listingId}`);
         const data = await response.json();
         if (data.success === false) {
@@ -85,8 +84,8 @@ const Listing = () => {
           <div onClick={handleShareClick} className=' cursor-pointer fixed top-[23%] border rounded-full w-12 h-12 flex justify-center items-center  bg-slate-100 right-[3%] z-10'>
             <FaShare className='text-slate-500' />
           </div>
-          <div className='flex flex-col max-w-4xl mx-auto p-3 my-7 gap-4'>
-            <p className='text-2xl font-semibold'>
+          <div className='flex flex-col  max-w-4xl mx-auto p-3 my-7 gap-4'>
+            <p className='sm:text-2xl font-semibold '>
               {listing.name} -₹ {" "}{listing.offer? (listing.discountedPrice && listing.discountedPrice.toLocaleString('en-IN')) || ''
                 : (listing.regularPrice && listing.regularPrice.toLocaleString('en-IN')) || ''}
                   {listing.type==='rent'&&" / month"}
@@ -107,7 +106,7 @@ const Listing = () => {
             <p className='text-slate-500'>
               <span className='fon-semibold text-black'>Description - </span>{listing.description}
             </p>
-            <ul className=' text-green-900 text-sm font-semibold flex items-center sm:gap-6 flex-wrap'>
+            <ul className=' text-green-900 text-sm font-semibold flex items-center gap-3 sm:gap-6 flex-wrap'>
               <li className='flex items-center gap-1 whitespace-nowrap '>
                 <FaBed className='text-lg' />
                 {listing.bedrooms > 1 ? `${listing.bedrooms} beds` : `${listing.bedrooms} bed`}
@@ -126,9 +125,9 @@ const Listing = () => {
               </li>
             </ul>
             {currentUser && listing.userRef!==currentUser._id && !clicked &&(
-            <button className='bg-slate-900 hover:opacity-90 text-white rounded-lg uppercase p-3' onClick={setClicked(true)}>Contact Landlord</button>
+            <button className='bg-slate-900 hover:opacity-90 text-white rounded-lg uppercase p-3' onClick={()=>setClicked(true)}>Contact Landlord</button>
             )}
-            {clicked &&<Contact listing={listing}/>}
+            {clicked && <Contact listing={listing}/>}
           </div>
           <ToastContainer />
         </div>

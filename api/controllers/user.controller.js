@@ -12,6 +12,29 @@ export const test = (req, res) => {
     });
 };
 
+export const checkUserEmail = async (req, res, next) => {
+  try {
+    const { email } = req.params;
+    const { userId } = req.query; // Assuming you pass the current userId as a query parameter
+    const existingUser = await User.findOne({ email, _id: { $ne: userId } });
+    res.json({ exists: !!existingUser });
+  } catch (error) {
+    next(error); // Forward the error to the error handler
+  }
+};
+
+export const checkUserName = async (req, res, next) => {
+  try {
+    const { username } = req.params;
+    const { userId } = req.query; // Assuming you pass the current userId as a query parameter
+    const existingUser = await User.findOne({ username, _id: { $ne: userId } });
+
+    res.json({ exists: !!existingUser });
+  } catch (error) {
+    next(error); // Forward the error to the error handler
+  }
+};
+
 export const updateUser = async (req, res, next) => {
     if (req.user.id !== req.params.id) return next(errorHandler(401, "You can only update your own account"));
   
@@ -75,7 +98,7 @@ export const updateUser = async (req, res, next) => {
       if(!listing)
         next(errorHandler(404,'User not found'));
       const {password:pass,...rest}=listing._doc;
-      console.log(rest);
+      // console.log(rest);
       res.status(200).json(rest);
     } catch (error) {
       next(error);
