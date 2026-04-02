@@ -98,12 +98,40 @@ export const updateUser = async (req, res, next) => {
       if(!listing)
         next(errorHandler(404,'User not found'));
       const {password:pass,...rest}=listing._doc;
-      // console.log(rest);
       res.status(200).json(rest);
     } catch (error) {
       next(error);
-      
-}
-    
-
+    }
   }
+
+  export const saveListing = async (req, res, next) => {
+    if (req.user.id !== req.params.id) return next(errorHandler(401, 'You can only update your own saved listings'));
+    try {
+      const { listingId } = req.body;
+      const user = await User.findById(req.params.id);
+      if (!user) return next(errorHandler(404, 'User not found'));
+
+      const alreadySaved = user.savedListings.includes(listingId);
+      const update = alreadySaved
+        ? { $pull: { savedListings: listingId } }
+        : { $addToSet: { savedListings: listingId } };
+
+      const updatedUser = await User.findByIdAndUpdate(req.params.id, update, { new: true });
+      const { password: pass, ...rest } = updatedUser._doc;
+      res.status(200).json({ savedListings: rest.savedListings, saved: !alreadySaved });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  export const getSavedListings = async (req, res, next) => {
+    if (req.user.id !== req.params.id) return next(errorHandler(401, 'You can only view your own saved listings'));
+    try {
+      const user = await User.findById(req.params.id);
+      if (!user) return next(errorHandler(404, 'User not found'));
+      const listings = await Listing.find({ _id: { $in: user.savedListings } });
+      res.status(200).json(listings);
+    } catch (error) {
+      next(error);
+    }
+  };

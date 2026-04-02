@@ -5,11 +5,11 @@ import { toast,ToastContainer} from 'react-toastify';
 
 import { app } from '../firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { updateUserStart ,updateUserFailure,updateUserSuccess,deleteUserFailure, deleteUserSuccess,clearError,signOutUserStart,signOutSuccess, signInFailure, signOutUserFailure} from '../redux/user/userSlice';
-import {Link, useNavigate} from'react-router-dom';
+import { updateUserStart ,updateUserFailure,updateUserSuccess,deleteUserFailure, deleteUserSuccess,clearError,signOutUserStart,signOutSuccess, signOutUserFailure} from '../redux/user/userSlice';
+import {Link} from'react-router-dom';
 
 import { FaEye,FaEyeSlash} from "react-icons/fa6";
-import { FaEdit} from "react-icons/fa";
+import { FaEdit, FaHeart} from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 
 
@@ -24,7 +24,8 @@ const Profile = () => {
   const [message, setMessage] = useState();
   const [showListingError, setShowListingError] = useState(false);
   const [userListings, setuserListings] = useState([]);
-  const navigate=useNavigate();
+  const [savedListings, setSavedListings] = useState([]);
+  const [activeTab, setActiveTab] = useState('myListings');
   const dispatch=useDispatch();
   const [showPassword, setShowPassword] = useState(false);
 
@@ -60,10 +61,8 @@ const Profile = () => {
           dispatch(signOutUserFailure(data.message));
           return;
         } 
-          console.error('Sign-out Passed:', data.message);
           dispatch(signOutSuccess(data));    
     } catch (error) {
-      console.error('Error during sign-out:', error.message);
       dispatch(signOutUserFailure(error.message));
       
     }
@@ -112,10 +111,8 @@ const Profile = () => {
         () => {
           // Handle successful upload
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            // console.log('File available at', downloadURL);
             setFormData({ ...formData, avatar: downloadURL });
           });
-          console.log('File uploaded successfully');
           setMessage("File uploaded successfully");
           // Clear the success message after 5 seconds
           setTimeout(() => {
@@ -125,8 +122,6 @@ const Profile = () => {
         }
       );
     }
-
-    // Add your other update profile logic here, e.g., update user data in Firebase Firestore
   };
 
   const handleImageClick = () => {
@@ -140,7 +135,6 @@ const Profile = () => {
 
   const handleChange=(event)=>{
       setFormData({...formData,[event.target.id]:event.target.value})
-      // console.log(formData);
   }
 
   const handleListings=async()=>{
@@ -158,6 +152,17 @@ const Profile = () => {
       }    
 
   }
+
+  const handleSavedListings = async () => {
+    try {
+      const res = await fetch(`/api/user/saved-listings/${currentUser._id}`);
+      const data = await res.json();
+      if (data.success === false) return;
+      setSavedListings(data);
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
 
   useEffect(() => {
     // Cleanup function when component unmounts
@@ -179,44 +184,44 @@ const Profile = () => {
       
       dispatch(updateUserStart());
 
-      if (formData.username.includes(' ')) {
+      if (formData.username && formData.username.includes(' ')) {
         dispatch(updateUserFailure('Username should not contain spaces. Please use a single word for your username.'));
         return ;
       }
 
-          // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (formData.email) {
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(formData.email)) {
           dispatch(updateUserFailure('Invalid email format'));
           return;
         }
 
-  
-
         if(formData.email!==formData.email.toLowerCase())
         {
           dispatch(updateUserFailure('Email should have only lower case'));
           return;
-
         }
 
-      
-        // Check if the new username is taken by someone else
-      const usernameResponse = await fetch(`/api/user/update/checkusername/${formData.username}?userId=${currentUser._id}`);
-      const usernameData = await usernameResponse.json();
+        // Check if the new email is taken by someone else
+        const emailResponse = await fetch(`/api/user/update/checkuseremail/${formData.email}?userId=${currentUser._id}`);
+        const emailData = await emailResponse.json();
 
-      if (usernameData.exists) {
-        dispatch(updateUserFailure("Username exists already. Please choose a different Username"));
-        return;
+        if (emailData.exists) {
+          dispatch(updateUserFailure("Email already exists. Please choose a different email"));
+          return;
+        }
       }
 
-      // Check if the new email is taken by someone else
-      const emailResponse = await fetch(`/api/user/update/checkuseremail/${formData.email}?userId=${currentUser._id}`);
-      const emailData = await emailResponse.json();
+      if (formData.username) {
+        // Check if the new username is taken by someone else
+        const usernameResponse = await fetch(`/api/user/update/checkusername/${formData.username}?userId=${currentUser._id}`);
+        const usernameData = await usernameResponse.json();
 
-      if (emailData.exists) {
-        dispatch(updateUserFailure("Email already exists. Please choose a different email"));
-        return;
+        if (usernameData.exists) {
+          dispatch(updateUserFailure("Username exists already. Please choose a different Username"));
+          return;
+        }
       }
 
 
@@ -251,6 +256,7 @@ const Profile = () => {
 
   useEffect(()=>{
     handleListings();
+    handleSavedListings();
   },[]);
   
   
@@ -262,7 +268,6 @@ const Profile = () => {
         const data= await res.json();
         if(data.success===false)
         {
-          // console.log(data.message);
           toast.error(data.message,{autoClose: 3000,});
           return;
         }
@@ -270,179 +275,221 @@ const Profile = () => {
         setuserListings((prev)=>prev.filter((listing)=>listing._id!==listingId))
     } catch (error) {
       toast.error('An error occurred while deleting the listing');
-      console.log(error);
+      console.error(error);
     }
 
   }
 
   return (
-    <div className="container mx-auto mt-8">
-      <div className="max-w-md mx-auto bg-white rounded-md shadow-md p-6 flex flex-col gap-3 flex- wrap items-center">
-        <h2 className="text-3xl font-bold ">Profile </h2>
-        <form onSubmit={handleSubmit} className="flex flex-col items-start gap-4 ">
-          <div className="self-center">
-            <img
-              src={formData.avatar || currentUser.avatar}
-              alt="Profile Avatar"
-              className="h-[150px] rounded-full  shadow-md hover:scale-105 cursor-pointer"
-              onClick={handleImageClick}
-            />
-            <input
-              id='avatar'
-              type="file"
-              accept="image/*"
-              // defaultValue={currentUser.avatar}
-              ref={fileInputRef}
-              className="hidden"
-              onChange={handleFileChange}
-            />
-          </div>
-          <div className="w-full">
-            <label htmlFor="username" className="block text-sm font-medium text-gray-600">
-              Username
-            </label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              defaultValue={currentUser.username}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md p-2"
-            />
-          </div>
-          <div className="w-full">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-600">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              defaultValue={currentUser.email}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md p-2"
-            />
+    <div className="bg-gray-50 min-h-screen py-8">
+      <div className="max-w-2xl mx-auto px-4">
+        {/* Profile Card */}
+        <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col gap-4 mb-6">
+          <h2 className="text-2xl font-bold text-slate-800 text-center">My Profile</h2>
+          <form onSubmit={handleSubmit} className="flex flex-col items-start gap-4">
+            <div className="self-center relative">
+              <img
+                src={formData.avatar || currentUser.avatar}
+                alt="Profile Avatar"
+                className="h-[120px] w-[120px] rounded-full shadow-md hover:opacity-90 cursor-pointer object-cover border-4 border-blue-100"
+                onClick={handleImageClick}
+              />
+              <div className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1.5 cursor-pointer" onClick={handleImageClick}>
+                <FaEdit className="text-xs"/>
+              </div>
+              <input
+                id='avatar'
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileChange}
+              />
+            </div>
+
+            {fileUploadError !== null ? (
+              <div className="text-red-500 text-sm w-full text-center">
+                <p>{fileUploadError}</p>
+              </div>
+            ) : uploadProgress > 0 && uploadProgress < 100 ? (
+              <div className="w-full">
+                <p className='text-xs text-gray-500 mb-1'>Uploading... {Math.round(uploadProgress)}%</p>
+                <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                  <div className="bg-blue-500 h-full transition-all" style={{ width: `${uploadProgress}%` }}></div>
+                </div>
+              </div>
+            ) : selectedFile && message ? (
+              <p className="text-green-600 text-sm w-full text-center">{message}</p>
+            ) : null}
+
+            <div className="w-full">
+              <label htmlFor="username" className="block text-sm font-medium text-gray-600 mb-1">Username</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                defaultValue={currentUser.username}
+                onChange={handleChange}
+                className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
             <div className="w-full">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-600">
-              Password
-            </label>
-            <div className="relative flex items-center">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-600 mb-1">Email</label>
               <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                placeholder="Password"
+                type="email"
+                id="email"
+                name="email"
+                defaultValue={currentUser.email}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md p-2"
+                className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3  text-gray-500 hover:text-gray-700 cursor-pointer"
-              >
-                {showPassword ? <FaEyeSlash/> : <FaEye/>}  
-              </button>
+            </div>
+            <div className="w-full">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-600 mb-1">New Password</label>
+              <div className="relative flex items-center">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  placeholder="Leave blank to keep current"
+                  onChange={handleChange}
+                  className="w-full border border-gray-200 rounded-lg p-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 text-gray-400 hover:text-gray-600 cursor-pointer"
+                >
+                  {showPassword ? <FaEyeSlash/> : <FaEye/>}  
+                </button>
+              </div>
             </div>
 
-            </div>
-          <div className="flex w-full items-center  flex-col gap-4">
-            <div className='flex items-center justify-center flex-wrap gap-4'>
-              <button
-                type="button"
-                disabled={loading}
-                onClick={handleDeleteAccount}
-                className="bg-red-500 flex-initial text-white p-2 rounded-md hover:bg-red-600 focus:outline-none focus:shadow-outline-red"
-              >
-                Delete Account
-              </button>
-        <ToastContainer/>
-
+            <div className="flex w-full flex-wrap gap-3 mt-2">
               <button
                 disabled={loading}
-                type="button"
-                onClick={handleSubmit}
-                className="flex-1 bg-green-500 text-white p-2 rounded-md hover:bg-green-600 focus:outline-none focus:shadow-outline-green"
+                type="submit"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-semibold text-sm transition-colors disabled:opacity-60"
               >
-                {loading? 'Loading....':'Update'}
+                {loading ? 'Updating...' : 'Update Profile'}
               </button>
               <button 
                 type='button' 
                 onClick={handleSignOut}
-                className="flex-1 bg-gray-500 text-white p-2 rounded-md hover:bg-gray-600 focus:outline-none focus:shadow-outline-gray"
-                >
-                Signout
+                className="bg-gray-500 hover:bg-gray-600 text-white py-2.5 px-4 rounded-lg font-semibold text-sm transition-colors"
+              >
+                Sign Out
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={handleDeleteAccount}
+                className="bg-red-500 hover:bg-red-600 text-white py-2.5 px-4 rounded-lg font-semibold text-sm transition-colors"
+              >
+                Delete Account
               </button>
             </div>
-            <div className='flex-1 min-w-full'>
-              <Link to={"/create-list"}>
-                <button 
-                  type='button'
-                  className='min-w-full flex-1 bg-blue-500 disabled:bg-blue-400 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300'>
-                    Create Listing
-                </button>
-              </Link> 
-            </div>
-          </div>
-        </form>
-        {fileUploadError !== null ? (
-          <div className="text-red-500">
-            <p>{fileUploadError}</p>
-          </div>
-        ) : uploadProgress > 0 && uploadProgress < 100 ? (
-          <div className="w-full bg-gray-200 h-4 rounded-md overflow-hidden">
-            <div
-              className="bg-green-500 h-full"
-              style={{ width: `${uploadProgress}%` }}
-            ></div>
-          </div>
-        ) : selectedFile ? (
-          <div className="text-green-500">
-            <p>{message}</p>
-          </div>
-        ) : null}
-        <p className='text-red-800'>
-          {error? error:''}
-        </p>
-        <p className='text-green-700'>
-          {success?'User Updated successfully':''}
-        </p>
-        {/* <button className="text-green-500" onClick={handleListings} type="button"
-        >
-          Show listings
-        </button> */}
-        {userListings.length<1 &&
-        <div>No Listings to Show</div>}
+          </form>
 
-        {showListingError && 
-          <p className="text-red-500">
-              Error Showing the Listings
-          </p>
-        }
-        { userListings && userListings.length>0 &&
-        <div className='flex flex-col gap-4'>
-          <h1 className='text-center mt-7 text-2xl  font-semibold'>{`Your Listings (${userListings.length})`}</h1>
-          {userListings.map((list)=>
-            < div key={list._id} className='border rounded-lg  gap-4 p-3 flex justify-between items-center'>
-              <Link to={`/listing/${list._id}`}>
-              <img className="h-16 w-16 object-contain" alt={list.name} src={list.imageUrls[0]}/>
-              </Link>
-              <Link className='truncate text-slate-700 font-semibold flex-1' to={`/listing/${list._id}`}>
-                <p >{list.name}</p>
-              </Link>
-              <div className='flex flex-col items-center'>
-                <Link to={`/update-listing/${list._id}`}>
-                  <button className="text-green-500 text-lg uppercase"><FaEdit/></button>
-                </Link>
-                <button className="text-red-500 text-lg uppercase" onClick={()=>handledeleteListing(list._id)}><MdDelete /></button>
-              </div>
-            </div>
-          )}
+          <p className='text-red-600 text-sm text-center'>{error ? error : ''}</p>
+          <p className='text-green-600 text-sm text-center'>{success ? 'Profile updated successfully!' : ''}</p>
+
+          <Link to={"/create-list"}>
+            <button 
+              type='button'
+              className='w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-lg font-semibold text-sm transition-colors'>
+                + Create New Listing
+            </button>
+          </Link>
         </div>
-        }
-        {!userListings && <div>No Listing to show</div>}
+
+        {/* Listings Section */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          {/* Tabs */}
+          <div className='flex border-b'>
+            <button
+              onClick={() => setActiveTab('myListings')}
+              className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === 'myListings' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              My Listings ({userListings.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('saved')}
+              className={`flex-1 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 ${activeTab === 'saved' ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              <FaHeart className='text-xs'/> Saved ({savedListings.length})
+            </button>
+          </div>
+
+          <div className='p-4'>
+            {/* My Listings Tab */}
+            {activeTab === 'myListings' && (
+              <>
+                {showListingError && (
+                  <p className="text-red-500 text-sm text-center py-4">Error loading listings</p>
+                )}
+                {userListings.length === 0 && !showListingError && (
+                  <div className='text-center py-10'>
+                    <p className='text-gray-400 text-sm mb-3'>No listings yet</p>
+                    <Link to="/create-list" className='text-blue-600 hover:underline text-sm font-medium'>Create your first listing</Link>
+                  </div>
+                )}
+                <div className='flex flex-col gap-3'>
+                  {userListings.map((list) =>
+                    <div key={list._id} className='border border-gray-100 rounded-xl gap-4 p-3 flex justify-between items-center hover:shadow-sm transition-shadow'>
+                      <Link to={`/listing/${list._id}`}>
+                        <img className="h-14 w-14 object-cover rounded-lg" alt={list.name} src={list.imageUrls[0]}/>
+                      </Link>
+                      <Link className='truncate text-slate-700 font-semibold flex-1 text-sm' to={`/listing/${list._id}`}>
+                        <p>{list.name}</p>
+                        <p className='text-gray-400 font-normal text-xs mt-0.5'>₹{list.offer ? list.discountedPrice?.toLocaleString('en-IN') : list.regularPrice?.toLocaleString('en-IN')}{list.type==='rent'&&'/mo'}</p>
+                      </Link>
+                      <div className='flex flex-col items-center gap-1'>
+                        <Link to={`/update-listing/${list._id}`}>
+                          <button title="Edit" className="text-blue-500 hover:text-blue-700 text-lg"><FaEdit/></button>
+                        </Link>
+                        <button title="Delete" className="text-red-400 hover:text-red-600 text-lg" onClick={()=>handledeleteListing(list._id)}><MdDelete /></button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* Saved Listings Tab */}
+            {activeTab === 'saved' && (
+              <>
+                {savedListings.length === 0 && (
+                  <div className='text-center py-10'>
+                    <FaHeart className='text-red-200 text-4xl mx-auto mb-3'/>
+                    <p className='text-gray-400 text-sm mb-3'>No saved listings yet</p>
+                    <Link to="/search" className='text-blue-600 hover:underline text-sm font-medium'>Browse properties</Link>
+                  </div>
+                )}
+                <div className='flex flex-col gap-3'>
+                  {savedListings.map((list) =>
+                    <div key={list._id} className='border border-gray-100 rounded-xl gap-4 p-3 flex justify-between items-center hover:shadow-sm transition-shadow'>
+                      <Link to={`/listing/${list._id}`}>
+                        <img className="h-14 w-14 object-cover rounded-lg" alt={list.name} src={list.imageUrls[0]}/>
+                      </Link>
+                      <Link className='truncate text-slate-700 font-semibold flex-1 text-sm' to={`/listing/${list._id}`}>
+                        <p>{list.name}</p>
+                        <p className='text-gray-400 font-normal text-xs mt-0.5'>₹{list.offer ? list.discountedPrice?.toLocaleString('en-IN') : list.regularPrice?.toLocaleString('en-IN')}{list.type==='rent'&&'/mo'}</p>
+                      </Link>
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${list.type === 'rent' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
+                        {list.type === 'rent' ? 'Rent' : 'Sale'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
+      <ToastContainer/>
     </div>
   );
 };
 
 export default Profile;
+
