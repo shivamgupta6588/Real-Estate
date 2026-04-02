@@ -273,9 +273,8 @@ const Profile = () => {
         }
         toast.success('Listing deleted successfully',{autoClose: 3000,});
         setuserListings((prev)=>prev.filter((listing)=>listing._id!==listingId))
-    } catch (error) {
+    } catch (err) {
       toast.error('An error occurred while deleting the listing');
-      console.error(error);
     }
 
   }

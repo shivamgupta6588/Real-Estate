@@ -14,7 +14,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
 import Contact from './Contact';
-import { signInSuccess } from '../redux/user/userSlice';
+import { updateUserSuccess } from '../redux/user/userSlice';
 
 const Listing = () => {
   const [listing, setListing] = useState({});
@@ -90,7 +90,7 @@ const Listing = () => {
         return;
       }
       setSaved(data.saved);
-      dispatch(signInSuccess({ ...currentUser, savedListings: data.savedListings }));
+      dispatch(updateUserSuccess({ ...currentUser, savedListings: data.savedListings }));
       toast.success(data.saved ? 'Listing saved!' : 'Listing removed from saved', { autoClose: 2000 });
     } catch (err) {
       toast.error('Something went wrong');

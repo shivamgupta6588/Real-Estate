@@ -20,7 +20,7 @@ const Home = () => {
         setOfferListings(data);
         fetchRentListings();
       } catch (error) {
-        console.error(error);
+        console.error('Failed to fetch offer listings:', error);
       }
     }
     const fetchRentListings=async()=>{
@@ -30,7 +30,7 @@ const Home = () => {
         setRentListings(data);
         fetchSaleListings();
       } catch (error) {
-        console.error(error);
+        console.error('Failed to fetch rent listings:', error);
       }
     }
     const fetchSaleListings=async()=>{
@@ -39,7 +39,7 @@ const Home = () => {
         const data=await res.json();
         setSaleListings(data);
       } catch (error) {
-        console.error(error);
+        console.error('Failed to fetch sale listings:', error);
       }
     }
     fetchOfferListings();
