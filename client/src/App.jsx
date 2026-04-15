@@ -5,6 +5,7 @@ import About from './pages/About';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
 import CreateListing from './pages/CreateListing';
 import UpdateListing from './pages/UpdateListing';
@@ -21,14 +22,14 @@ const App = () => {
             <Route path='/profile' element={<Profile />} />
             <Route path='/listing/:listingid' element={<Listing/>}/>
             <Route path='/create-list' element={<CreateListing/>}/>
-            <Route path='/Search' element={<Search/>}/>
+            <Route path='/search' element={<Search/>}/>
             <Route path='/update-listing/:id' element={<UpdateListing/>}/>
         </Route>
         <Route path='/about' element={<About />} />
         <Route path='/sign-in' element={<SignIn />} />
         <Route path='/sign-up' element={<SignUp />} />
-
       </Routes>
+    <Footer/>
     </BrowserRouter>
   );
 }

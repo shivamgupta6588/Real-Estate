@@ -4,7 +4,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {signInFailure,signInStart,signInSuccess, clearError} from '../redux/user/userSlice';
 import Oauth from '../components/Oauth';
 import { ToastContainer, toast,Slide } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';1
+import 'react-toastify/dist/ReactToastify.css';
 
 const SignIn = () => {
   const navigate = useNavigate();
